@@ -35,7 +35,6 @@ export function AppProvider({ children }) {
   const [officials, setOfficials] = useState([]);
   const [embassies, setEmbassies] = useState([]);
 
-  // Monitor internet connectivity
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       const connected = state.isConnected && state.isInternetReachable;
@@ -49,11 +48,9 @@ export function AppProvider({ children }) {
 
     const initialize = async () => {
       try {
-        // Load user first — this must always succeed
         const loadedUser = await loadOrCreateUser();
         if (isMounted) setUser(loadedUser);
 
-        // Initialize crypto separately — failure shouldn't block user loading
         try {
           await initCrypto();
           const pubKey = await getMyPublicKey();
@@ -131,26 +128,19 @@ export function AppProvider({ children }) {
       setCurrentLocation(coords);
       setUser(prev => prev ? { ...prev, latitude: coords.latitude, longitude: coords.longitude } : null);
 
-      // Location works - app is functional
       setIsOnline(true);
 
       if (hasInternet) {
-        // INTERNET MODE: Normal messaging app behavior
-        // In production, this would query a server for users within INTERNET_DISCOVERY_KM
-        // For now, set connection type and proceed with BLE scan as supplement
         setConnectionType('Internet');
       } else {
         setConnectionType('Location');
       }
 
       try {
-        // BLE MESH: Always try BLE scan (works offline, mesh networking)
         const devices = await startBLEScan((device) => {
           setNearbyUsers(prev => {
             if (prev.find(d => d.deviceId === device.deviceId)) return prev;
-            // Save discovered user for future search
             saveKnownUser({ id: device.id || device.deviceId, username: device.name || '' });
-            // Store their public key if available
             if (device.publicKey) {
               storePeerPublicKey(device.id, device.publicKey);
             }
@@ -169,7 +159,6 @@ export function AppProvider({ children }) {
           return merged;
         });
 
-        // If no internet but BLE works, switch to mesh mode
         if (!hasInternet && devices.length > 0) {
           setConnectionType('BLE Mesh');
         } else if (hasInternet) {
@@ -178,7 +167,6 @@ export function AppProvider({ children }) {
           setConnectionType('BLE');
         }
       } catch (bleErr) {
-        // BLE failed but location still works
         setNearbyError(bleErr.message);
         setNearbyUsers([]);
         if (!hasInternet) {

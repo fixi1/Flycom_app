@@ -2,12 +2,10 @@ import { StyleSheet } from 'react-native';
 import { COLORS } from './colors';
 
 export const commonStyles = StyleSheet.create({
-  // Screen
   screen: {
     flex: 1,
     backgroundColor: COLORS.darkBg,
   },
-  // Typography
   title: {
     fontSize: 24,
     fontWeight: '700',
@@ -34,7 +32,6 @@ export const commonStyles = StyleSheet.create({
     color: COLORS.gray,
     lineHeight: 20,
   },
-  // Top bar
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -54,7 +51,6 @@ export const commonStyles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
   },
-  // Cards
   card: {
     backgroundColor: COLORS.surface,
     borderRadius: 12,
@@ -72,7 +68,6 @@ export const commonStyles = StyleSheet.create({
     fontSize: 13,
     marginTop: 2,
   },
-  // List items
   listItem: {
     backgroundColor: COLORS.surface,
     borderRadius: 10,
@@ -89,7 +84,6 @@ export const commonStyles = StyleSheet.create({
     fontSize: 13,
     marginTop: 3,
   },
-  // Buttons
   button: {
     backgroundColor: COLORS.primaryBlue,
     paddingVertical: 10,
@@ -129,7 +123,6 @@ export const commonStyles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  // Input
   input: {
     backgroundColor: COLORS.surface,
     borderWidth: 1,
@@ -140,7 +133,6 @@ export const commonStyles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 15,
   },
-  // Section
   sectionHeader: {
     fontSize: 13,
     fontWeight: '600',
@@ -151,20 +143,17 @@ export const commonStyles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: 4,
   },
-  // Status dot
   statusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     marginRight: 6,
   },
-  // Divider
   divider: {
     height: 1,
     backgroundColor: COLORS.surfaceLight,
     marginVertical: 8,
   },
-  // SOS Button
   sosButton: {
     width: 80,
     height: 80,
@@ -184,7 +173,6 @@ export const commonStyles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 2,
   },
-  // Floating action button
   fab: {
     width: 48,
     height: 48,
@@ -198,7 +186,6 @@ export const commonStyles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
   },
-  // Popup menu
   popupMenu: {
     position: 'absolute',
     right: 16,
@@ -234,7 +221,6 @@ export const commonStyles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 10,
   },
-  // Bottom navigation
   bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -265,7 +251,6 @@ export const commonStyles = StyleSheet.create({
     marginTop: 3,
     fontWeight: '600',
   },
-  // BLE info card
   infoCard: {
     backgroundColor: COLORS.primaryBlue,
     borderRadius: 10,
@@ -291,12 +276,10 @@ export const commonStyles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
   },
-  // Map section
   mapSection: {
     alignItems: 'center',
     paddingVertical: 12,
   },
-  // Floating buttons container
   floatingButtons: {
     position: 'absolute',
     bottom: 80,

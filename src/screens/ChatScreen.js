@@ -29,7 +29,6 @@ export default function ChatScreen({ navigation, route }) {
 
   const locationChannels = nearbyEmbassies.filter(e => e.type === (activeTab === 'embassies' ? 'embassy' : 'consulate'));
 
-  // Determine if user can type
   const canType = !!(chatPartner || selectedChannel || (activeTab === 'chat' && !chatPartner));
 
   useEffect(() => {
@@ -50,7 +49,6 @@ export default function ChatScreen({ navigation, route }) {
         u.id.toUpperCase().includes(query) ||
         (u.username && u.username.toUpperCase().includes(query))
       );
-      // Also search nearby users
       const nearbyMatches = nearbyUsers.filter(u =>
         u.id.toUpperCase().includes(query) ||
         (u.name && u.name.toUpperCase().includes(query))
@@ -94,7 +92,6 @@ export default function ChatScreen({ navigation, route }) {
       return;
     }
 
-    // Encrypt message for the recipient
     const recipientId = chatPartner?.id || (isOfficialChannel ? selectedChannel : null);
     let encryptedText = messageText;
     let isEncrypted = false;
@@ -107,11 +104,10 @@ export default function ChatScreen({ navigation, route }) {
         }
       }
     } catch (e) {
-      // Send unencrypted if encryption fails
     }
 
     const message = {
-      text: messageText, // Store plaintext locally for sender
+      text: messageText,
       encryptedText,
       isEncrypted,
       senderId: user?.id,
@@ -153,7 +149,6 @@ export default function ChatScreen({ navigation, route }) {
   const renderMessage = ({ item }) => {
     const own = isOwnMessage(item);
     let displayText = item.text;
-    // If not own message and encrypted, try to decrypt
     if (!own && item.isEncrypted && item.encryptedText) {
       try {
         const decrypted = decryptMessage(item.encryptedText, item.senderId);

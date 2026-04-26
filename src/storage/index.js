@@ -98,7 +98,6 @@ export async function saveUsers(users) {
   await AsyncStorage.setItem(KEYS.USERS, JSON.stringify(users));
 }
 
-// Admin
 export async function isAdmin() {
   const raw = await AsyncStorage.getItem(KEYS.ADMIN);
   return raw === 'true';
@@ -108,7 +107,6 @@ export async function setAdmin(value) {
   await AsyncStorage.setItem(KEYS.ADMIN, value ? 'true' : 'false');
 }
 
-// Officials - users assigned to embassies/consulates
 export async function loadOfficials() {
   const raw = await AsyncStorage.getItem(KEYS.OFFICIALS);
   return raw ? JSON.parse(raw) : [];
@@ -137,7 +135,6 @@ export async function removeOfficial(userId) {
   return filtered;
 }
 
-// Embassies & Consulates with real coordinates
 export async function loadEmbassies() {
   const raw = await AsyncStorage.getItem(KEYS.EMBASSIES);
   if (raw) return JSON.parse(raw);
@@ -162,7 +159,6 @@ export async function removeEmbassy(id) {
   return filtered;
 }
 
-// Known Users - users we've interacted with (for search)
 export async function loadKnownUsers() {
   const raw = await AsyncStorage.getItem(KEYS.KNOWN_USERS);
   return raw ? JSON.parse(raw) : [];

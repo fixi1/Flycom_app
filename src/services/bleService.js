@@ -1,5 +1,3 @@
-// BLE Mesh Communication Service
-// This service handles Bluetooth Low Energy mesh networking for peer-to-peer communication
 
 import { BleManager } from 'react-native-ble-plx';
 
@@ -19,7 +17,7 @@ class BLEService {
           console.log('BLE Scan Error:', error);
           return;
         }
-        
+
         if (device && this.isValidMeshDevice(device)) {
           this.handleDiscoveredDevice(device);
         }
@@ -33,8 +31,6 @@ class BLEService {
   }
 
   isValidMeshDevice(device) {
-    // Check if device advertises our mesh service UUID or custom manufacturer data
-    // In production, you'd check for specific service UUIDs
     return device.name && device.name.includes('FLYCOM') || 
            device.localName && device.localName.includes('FLYCOM');
   }
@@ -50,11 +46,10 @@ class BLEService {
     try {
       const connectedDevice = await device.connect();
       const discoveredDevice = await connectedDevice.discoverAllServicesAndCharacteristics();
-      
+
       this.connectedDevices.set(device.id, discoveredDevice);
       console.log('Connected to mesh device:', device.id);
       
-      // Setup notification listener for incoming messages
       this.setupMessageListener(discoveredDevice);
     } catch (err) {
       console.error('Failed to connect to device:', err);
@@ -62,16 +57,11 @@ class BLEService {
   }
 
   setupMessageListener(device) {
-    // In production, you'd subscribe to the actual characteristic
-    // device.monitorCharacteristicForService(SERVICE_UUID, CHARACTERISTIC_UUID, callback)
   }
 
   async broadcastMessage(message) {
-    // Send message to all connected devices in mesh
     const promises = Array.from(this.connectedDevices.values()).map(async (device) => {
       try {
-        // In production, write to the actual characteristic
-        // await device.writeCharacteristicWithResponseForService(...)
         console.log('Broadcasting to:', device.id);
         return { success: true, deviceId: device.id };
       } catch (err) {
@@ -89,7 +79,6 @@ class BLEService {
   }
 
   async sendSOSAlert(sosData) {
-    // SOS alerts get priority broadcasting with higher power
     const message = {
       type: 'SOS',
       timestamp: Date.now(),
@@ -127,8 +116,7 @@ class BLEService {
 
   async disconnect() {
     await this.stopScanning();
-    
-    // Disconnect all devices
+
     const disconnectPromises = Array.from(this.connectedDevices.keys()).map(async (deviceId) => {
       try {
         await this.manager.cancelDeviceConnection(deviceId);
@@ -151,6 +139,5 @@ class BLEService {
   }
 }
 
-// Singleton instance
 export const bleService = new BLEService();
 export default bleService;

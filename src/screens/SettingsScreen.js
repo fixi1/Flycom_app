@@ -13,7 +13,7 @@ import {
 } from '../storage';
 import BottomNav from '../components/BottomNav';
 
-const ADMIN_PASSWORD = 'flycom2024';
+const ADMIN_PASSWORD = 'flycom2026';
 
 export default function SettingsScreen({ navigation }) {
   const { user, setUsername, admin, setAdmin, officials, refreshOfficials, embassies, refreshEmbassies, currentLocation, isOnline, hasInternet, connectionType, nearbyUsers, nearbyError } = useAppContext();

@@ -104,7 +104,6 @@ export function stopBLEScan() {
     try {
       bleManager.stopDeviceScan();
     } catch (e) {
-      // Ignore - scan may not be active
     }
   }
 }
@@ -125,7 +124,6 @@ export async function disconnectDevice(deviceId) {
   try {
     await manager.cancelDeviceConnection(deviceId);
   } catch (err) {
-    // Device may already be disconnected
   }
 }
 
@@ -135,7 +133,6 @@ export function destroyManager() {
     try {
       bleManager.destroy();
     } catch (e) {
-      // Ignore
     }
     bleManager = null;
   }
