@@ -1,0 +1,320 @@
+import { StyleSheet } from 'react-native';
+import { COLORS } from './colors';
+
+export const commonStyles = StyleSheet.create({
+  // Screen
+  screen: {
+    flex: 1,
+    backgroundColor: COLORS.darkBg,
+  },
+  // Typography
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.white,
+    letterSpacing: 0.5,
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.white,
+    marginBottom: 4,
+  },
+  bodyText: {
+    fontSize: 14,
+    color: COLORS.white,
+    lineHeight: 20,
+  },
+  caption: {
+    fontSize: 12,
+    color: COLORS.gray,
+  },
+  infoText: {
+    fontSize: 14,
+    color: COLORS.gray,
+    lineHeight: 20,
+  },
+  // Top bar
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: COLORS.primaryBlue,
+  },
+  topBarTitle: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  topBarSubtitle: {
+    color: COLORS.whiteAlpha50,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  // Cards
+  card: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+  },
+  cardTitle: {
+    color: COLORS.white,
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  cardSubtitle: {
+    color: COLORS.gray,
+    fontSize: 13,
+    marginTop: 2,
+  },
+  // List items
+  listItem: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 8,
+  },
+  listItemTitle: {
+    color: COLORS.white,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  listItemSub: {
+    color: COLORS.gray,
+    fontSize: 13,
+    marginTop: 3,
+  },
+  // Buttons
+  button: {
+    backgroundColor: COLORS.primaryBlue,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  buttonSmall: {
+    backgroundColor: COLORS.primaryBlue,
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonTextSmall: {
+    color: COLORS.white,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  buttonDanger: {
+    backgroundColor: COLORS.red,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonDangerText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  // Input
+  input: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceLight,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    color: COLORS.white,
+    fontSize: 15,
+  },
+  // Section
+  sectionHeader: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 8,
+    marginTop: 16,
+    paddingHorizontal: 4,
+  },
+  // Status dot
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  // Divider
+  divider: {
+    height: 1,
+    backgroundColor: COLORS.surfaceLight,
+    marginVertical: 8,
+  },
+  // SOS Button
+  sosButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.red,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  sosButtonText: {
+    color: COLORS.white,
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  // Floating action button
+  fab: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.primaryBlue,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  // Popup menu
+  popupMenu: {
+    position: 'absolute',
+    right: 16,
+    top: 56,
+    backgroundColor: COLORS.surface,
+    borderRadius: 10,
+    padding: 6,
+    minWidth: 200,
+    elevation: 8,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+  },
+  popupMenuTitle: {
+    color: COLORS.gray,
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  popupMenuOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+  },
+  popupMenuOptionText: {
+    color: COLORS.white,
+    fontSize: 14,
+    marginLeft: 10,
+  },
+  // Bottom navigation
+  bottomNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: COLORS.primaryBlue,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+  },
+  navButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  navButtonActive: {
+    backgroundColor: COLORS.primaryBlueLight,
+  },
+  navButtonText: {
+    color: COLORS.whiteAlpha50,
+    fontSize: 11,
+    marginTop: 3,
+    fontWeight: '500',
+  },
+  navButtonTextActive: {
+    color: COLORS.white,
+    fontSize: 11,
+    marginTop: 3,
+    fontWeight: '600',
+  },
+  // BLE info card
+  infoCard: {
+    backgroundColor: COLORS.primaryBlue,
+    borderRadius: 10,
+    padding: 14,
+  },
+  infoCardTitle: {
+    color: COLORS.white,
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  infoCardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  infoCardLabel: {
+    color: COLORS.whiteAlpha50,
+    fontSize: 13,
+  },
+  infoCardValue: {
+    color: COLORS.white,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  // Map section
+  mapSection: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  // Floating buttons container
+  floatingButtons: {
+    position: 'absolute',
+    bottom: 80,
+    right: 16,
+    flexDirection: 'column',
+  },
+  callDroneButton: {
+    backgroundColor: COLORS.primaryBlue,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 10,
+    elevation: 4,
+  },
+  callDroneButtonText: {
+    color: COLORS.white,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+});
