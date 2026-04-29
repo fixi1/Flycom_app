@@ -2,7 +2,7 @@ const http = require('http');
 const url = require('url');
 
 const rooms = {};
-const MAX_AGE = 120000;
+const MAX_AGE = 300000; // 5 minutes
 const MAX_MESSAGES = 200;
 
 function getRoom(name) {
@@ -59,30 +59,32 @@ const server = http.createServer(async (req, res) => {
     return json(res, { ok: true, peerCount: Object.keys(room.peers).length });
   }
 
-  if (path === '/peers' && req.method === 'GET') {
-    const roomName = parsed.query.room;
-    if (!roomName) return json(res, { peers: [] });
-    const room = getRoom(roomName);
-    cleanRoom(room);
-    return json(res, { peers: Object.values(room.peers) });
-  }
-
   if (path === '/message' && req.method === 'POST') {
     const body = await parseBody(req);
     if (!body.room || !body.message) return json(res, { error: 'missing room/message' }, 400);
     const room = getRoom(body.room);
-    room.messages.push({ ...body.message, serverTimestamp: Date.now() });
+    const ts = Date.now();
+    room.messages.push({ ...body.message, serverTimestamp: ts });
     cleanRoom(room);
-    return json(res, { ok: true });
+    console.log(`  [msg stored] room=${body.room} type=${body.message.type} from=${body.message.senderId} ts=${ts}`);
+    return json(res, { ok: true, serverTimestamp: ts });
   }
 
   if (path === '/messages' && req.method === 'GET') {
     const roomName = parsed.query.room;
     const since = parseInt(parsed.query.since) || 0;
-    if (!roomName) return json(res, { messages: [] });
+    if (!roomName) return json(res, { messages: [], serverTime: Date.now() });
     const room = getRoom(roomName);
     const filtered = room.messages.filter(m => (m.serverTimestamp || 0) > since);
-    return json(res, { messages: filtered });
+    return json(res, { messages: filtered, serverTime: Date.now() });
+  }
+
+  if (path === '/peers' && req.method === 'GET') {
+    const roomName = parsed.query.room;
+    if (!roomName) return json(res, { peers: [], serverTime: Date.now() });
+    const room = getRoom(roomName);
+    cleanRoom(room);
+    return json(res, { peers: Object.values(room.peers), serverTime: Date.now() });
   }
 
   if (path === '/' || path === '/health') {
