@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { commonStyles } from '../styles/commonStyles';
-import { COLORS } from '../styles/colors';
+import { useTheme } from '../context/ThemeContext';
 import { useAppContext } from '../context/AppContext';
 import { loadReferencePoints, addSOSAlert } from '../storage';
 import BottomNav from '../components/BottomNav';
 import LeafletMap from '../components/LeafletMap';
 
 export default function MapScreen({ navigation }) {
-  const { currentLocation, nearbyUsers, isLoadingNearby, nearbyError, loadNearbyUsers, user, nearbyEmbassies } = useAppContext();
+  const { currentLocation, nearbyUsers, isLoadingNearby, nearbyError, loadNearbyUsers, user, nearbyEmbassies, broadcastBleMessage, sendCloudMessage, hasInternet } = useAppContext();
+  const { styles, colors } = useTheme();
   const [referencePoints, setReferencePoints] = useState([]);
 
   useEffect(() => {
@@ -32,11 +32,11 @@ export default function MapScreen({ navigation }) {
         lng: currentLocation.longitude,
         title: 'You',
         popup: '<b>You</b><br/>Current location',
-        color: COLORS.primaryBlue,
+        color: colors.primaryBlue,
       });
     }
     referencePoints.forEach((point) => {
-      const color = point.safetyLevel === 'high' ? COLORS.green : point.safetyLevel === 'medium' ? COLORS.orange : COLORS.red;
+      const color = point.safetyLevel === 'high' ? colors.green : point.safetyLevel === 'medium' ? colors.orange : colors.red;
       markers.push({
         id: point.id,
         lat: point.latitude,
@@ -53,7 +53,7 @@ export default function MapScreen({ navigation }) {
         lng: nUser.longitude || (currentLocation?.longitude || 0) + 0.001,
         title: nUser.name || nUser.id,
         popup: `<b>${nUser.name || nUser.id}</b><br/>${nUser.id}`,
-        color: COLORS.primaryBlueLight,
+        color: colors.primaryBlueLight,
       });
     });
     nearbyEmbassies.forEach((embassy) => {
@@ -63,11 +63,11 @@ export default function MapScreen({ navigation }) {
         lng: embassy.longitude,
         title: embassy.name,
         popup: `<b>${embassy.name}</b><br/>${embassy.type}`,
-        color: embassy.type === 'embassy' ? COLORS.orange : COLORS.greenDark,
+        color: embassy.type === 'embassy' ? colors.orange : colors.greenDark,
       });
     });
     return markers;
-  }, [currentLocation, referencePoints, nearbyUsers, nearbyEmbassies]);
+  }, [currentLocation, referencePoints, nearbyUsers, nearbyEmbassies, colors]);
 
   const handleSOS = async () => {
     if (!currentLocation) return;
@@ -84,7 +84,19 @@ export default function MapScreen({ navigation }) {
             longitude: currentLocation.longitude,
             message: 'USER NEEDS IMMEDIATE ASSISTANCE',
           });
-          Alert.alert('SOS SENT', 'Your location has been broadcast.', [{ text: 'OK' }]);
+          const sosPayload = {
+            type: 'SOS',
+            senderId: user?.id,
+            senderName: user?.username || user?.id,
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude,
+            timestamp: Date.now(),
+          };
+          try { await broadcastBleMessage(JSON.stringify(sosPayload)); } catch (e) {}
+          if (sendCloudMessage) {
+            try { await sendCloudMessage(sosPayload); } catch (e) {}
+          }
+          Alert.alert('SOS SENT', 'Your location has been broadcast via BLE and Internet.', [{ text: 'OK' }]);
         },
       },
     ]);
@@ -92,14 +104,14 @@ export default function MapScreen({ navigation }) {
 
   if (isLoadingNearby) {
     return (
-      <SafeAreaView style={commonStyles.screen} edges={['top']}>
-        <View style={commonStyles.topBar}>
-          <Text style={commonStyles.topBarTitle}>Map</Text>
-          <Text style={commonStyles.topBarSubtitle}>Locating...</Text>
+      <SafeAreaView style={styles.screen} edges={['top']}>
+        <View style={styles.topBar}>
+          <Text style={styles.topBarTitle}>Map</Text>
+          <Text style={styles.topBarSubtitle}>Locating...</Text>
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={COLORS.primaryBlue} />
-          <Text style={[commonStyles.infoText, { marginTop: 12 }]}>Getting your location...</Text>
+          <ActivityIndicator size="large" color={colors.primaryBlue} />
+          <Text style={[styles.infoText, { marginTop: 12 }]}>Getting your location...</Text>
         </View>
         <BottomNav navigation={navigation} activeScreen="Map" />
       </SafeAreaView>
@@ -108,18 +120,18 @@ export default function MapScreen({ navigation }) {
 
   if (nearbyError || !currentLocation) {
     return (
-      <SafeAreaView style={commonStyles.screen} edges={['top']}>
-        <View style={commonStyles.topBar}>
-          <Text style={commonStyles.topBarTitle}>Map</Text>
-          <Text style={commonStyles.topBarSubtitle}>Unavailable</Text>
+      <SafeAreaView style={styles.screen} edges={['top']}>
+        <View style={styles.topBar}>
+          <Text style={styles.topBarTitle}>Map</Text>
+          <Text style={styles.topBarSubtitle}>Unavailable</Text>
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
-          <Ionicons name="location-outline" size={48} color={COLORS.grayDark} />
-          <Text style={[commonStyles.infoText, { textAlign: 'center', marginTop: 12 }]}>
+          <Ionicons name="location-outline" size={48} color={colors.grayDark} />
+          <Text style={[styles.infoText, { textAlign: 'center', marginTop: 12 }]}>
             {nearbyError || 'Location unavailable.'}
           </Text>
-          <TouchableOpacity style={[commonStyles.button, { marginTop: 16 }]} onPress={loadNearbyUsers}>
-            <Text style={commonStyles.buttonText}>Retry</Text>
+          <TouchableOpacity style={[styles.button, { marginTop: 16 }]} onPress={loadNearbyUsers}>
+            <Text style={styles.buttonText}>Retry</Text>
           </TouchableOpacity>
         </View>
         <BottomNav navigation={navigation} activeScreen="Map" />
@@ -128,23 +140,21 @@ export default function MapScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={commonStyles.screen} edges={['top']}>
-      {/* Top Info Bar */}
-      <View style={commonStyles.topBar}>
+    <SafeAreaView style={styles.screen} edges={['top']}>
+      <View style={styles.topBar}>
         <View>
-          <Text style={commonStyles.topBarTitle}>Map</Text>
-          <Text style={commonStyles.topBarSubtitle}>Your area</Text>
+          <Text style={styles.topBarTitle}>Map</Text>
+          <Text style={styles.topBarSubtitle}>Your area</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Ionicons name="people" size={14} color={COLORS.white} />
-          <Text style={[commonStyles.topBarSubtitle, { color: COLORS.white, marginLeft: 4 }]}>
+          <Ionicons name="people" size={14} color={colors.white} />
+          <Text style={[styles.topBarSubtitle, { color: colors.white, marginLeft: 4 }]}>
             {nearbyUsers.length} nearby
           </Text>
         </View>
       </View>
 
-      {/* Map */}
-      <View style={styles.container}>
+      <View style={{ flex: 1, marginHorizontal: 12, marginVertical: 8, borderRadius: 12, overflow: 'hidden', backgroundColor: colors.surface }}>
         <LeafletMap
           userLocation={currentLocation}
           markers={mapMarkers}
@@ -152,30 +162,17 @@ export default function MapScreen({ navigation }) {
         />
       </View>
 
-      {/* Floating Buttons */}
-      <View style={commonStyles.floatingButtons}>
-        <TouchableOpacity style={commonStyles.callDroneButton} onPress={() => {}} activeOpacity={0.7}>
-          <Ionicons name="airplane" size={16} color={COLORS.white} />
-          <Text style={[commonStyles.callDroneButtonText, { marginLeft: 4 }]}>Drone</Text>
+      <View style={styles.floatingButtons}>
+        <TouchableOpacity style={styles.callDroneButton} onPress={() => {}} activeOpacity={0.7}>
+          <Ionicons name="airplane" size={16} color={colors.white} />
+          <Text style={[styles.callDroneButtonText, { marginLeft: 4 }]}>Drone</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[commonStyles.sosButton, { width: 56, height: 56, borderRadius: 28 }]} onPress={handleSOS} activeOpacity={0.7}>
-          <Ionicons name="radio" size={22} color={COLORS.white} />
+        <TouchableOpacity style={[styles.sosButton, { width: 56, height: 56, borderRadius: 28 }]} onPress={handleSOS} activeOpacity={0.7}>
+          <Ionicons name="radio" size={22} color={colors.white} />
         </TouchableOpacity>
       </View>
 
-      {/* Bottom Navigation */}
       <BottomNav navigation={navigation} activeScreen="Map" />
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    marginHorizontal: 12,
-    marginVertical: 8,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: COLORS.surface,
-  },
-});

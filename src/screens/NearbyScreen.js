@@ -2,24 +2,21 @@ import { useEffect } from 'react';
 import { ActivityIndicator, Pressable, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { commonStyles } from '../styles/commonStyles';
+import { useTheme } from '../context/ThemeContext';
 import { useAppContext } from '../context/AppContext';
-import { COLORS } from '../styles/colors';
 import BottomNav from '../components/BottomNav';
-
-function getStatusColor(status) {
-  switch (status) {
-    case 'connected':
-      return COLORS.green;
-    case 'connecting':
-      return COLORS.orange;
-    default:
-      return COLORS.gray;
-  }
-}
 
 export default function NearbyScreen({ navigation }) {
   const { nearbyUsers, isLoadingNearby, nearbyError, loadNearbyUsers, nearbyEmbassies } = useAppContext();
+  const { styles, colors } = useTheme();
+
+  function getStatusColor(status) {
+    switch (status) {
+      case 'connected': return colors.green;
+      case 'connecting': return colors.orange;
+      default: return colors.gray;
+    }
+  }
 
   useEffect(() => {
     if (nearbyUsers.length === 0 && !isLoadingNearby && !nearbyError) {
@@ -29,14 +26,14 @@ export default function NearbyScreen({ navigation }) {
 
   if (isLoadingNearby) {
     return (
-      <SafeAreaView style={commonStyles.screen} edges={['top']}>
-        <View style={commonStyles.topBar}>
-          <Text style={commonStyles.topBarTitle}>Nearby</Text>
-          <Text style={commonStyles.topBarSubtitle}>Scanning...</Text>
+      <SafeAreaView style={styles.screen} edges={['top']}>
+        <View style={styles.topBar}>
+          <Text style={styles.topBarTitle}>Nearby</Text>
+          <Text style={styles.topBarSubtitle}>Scanning...</Text>
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={COLORS.primaryBlue} />
-          <Text style={[commonStyles.infoText, { marginTop: 12 }]}>Scanning for nearby devices...</Text>
+          <ActivityIndicator size="large" color={colors.primaryBlue} />
+          <Text style={[styles.infoText, { marginTop: 12 }]}>Scanning for nearby devices...</Text>
         </View>
         <BottomNav navigation={navigation} activeScreen="Nearby" />
       </SafeAreaView>
@@ -45,16 +42,16 @@ export default function NearbyScreen({ navigation }) {
 
   if (nearbyError) {
     return (
-      <SafeAreaView style={commonStyles.screen} edges={['top']}>
-        <View style={commonStyles.topBar}>
-          <Text style={commonStyles.topBarTitle}>Nearby</Text>
-          <Text style={commonStyles.topBarSubtitle}>Error</Text>
+      <SafeAreaView style={styles.screen} edges={['top']}>
+        <View style={styles.topBar}>
+          <Text style={styles.topBarTitle}>Nearby</Text>
+          <Text style={styles.topBarSubtitle}>Error</Text>
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
-          <Ionicons name="bluetooth-outline" size={48} color={COLORS.grayDark} />
-          <Text style={[commonStyles.infoText, { textAlign: 'center', marginTop: 12 }]}>{nearbyError}</Text>
-          <TouchableOpacity style={[commonStyles.button, { marginTop: 16 }]} onPress={loadNearbyUsers}>
-            <Text style={commonStyles.buttonText}>Retry</Text>
+          <Ionicons name="bluetooth-outline" size={48} color={colors.grayDark} />
+          <Text style={[styles.infoText, { textAlign: 'center', marginTop: 12 }]}>{nearbyError}</Text>
+          <TouchableOpacity style={[styles.button, { marginTop: 16 }]} onPress={loadNearbyUsers}>
+            <Text style={styles.buttonText}>Retry</Text>
           </TouchableOpacity>
         </View>
         <BottomNav navigation={navigation} activeScreen="Nearby" />
@@ -63,62 +60,64 @@ export default function NearbyScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={commonStyles.screen} edges={['top']}>
-      {/* Top Info Bar */}
-      <View style={commonStyles.topBar}>
+    <SafeAreaView style={styles.screen} edges={['top']}>
+      <View style={styles.topBar}>
         <View>
-          <Text style={commonStyles.topBarTitle}>Nearby</Text>
-          <Text style={commonStyles.topBarSubtitle}>BLE Discovery</Text>
+          <Text style={styles.topBarTitle}>Nearby</Text>
+          <Text style={styles.topBarSubtitle}>BLE Discovery</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Ionicons name="bluetooth" size={16} color={COLORS.white} />
-          <Text style={[commonStyles.topBarSubtitle, { color: COLORS.white, marginLeft: 4 }]}>
+          <Ionicons name="bluetooth" size={16} color={colors.white} />
+          <Text style={[styles.topBarSubtitle, { color: colors.white, marginLeft: 4 }]}>
             {nearbyUsers.length} found
           </Text>
         </View>
       </View>
 
-      {/* Main Content Area */}
-      <ScrollView 
+      <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Nearby Users Section */}
-        <Text style={commonStyles.sectionHeader}>Nearby Devices</Text>
+        <Text style={styles.sectionHeader}>Nearby Devices</Text>
         {nearbyUsers.length === 0 ? (
           <View style={{ alignItems: 'center', paddingVertical: 32 }}>
-            <Ionicons name="radio-outline" size={40} color={COLORS.grayDark} />
-            <Text style={[commonStyles.infoText, { textAlign: 'center', marginTop: 8 }]}>
+            <Ionicons name="radio-outline" size={40} color={colors.grayDark} />
+            <Text style={[styles.infoText, { textAlign: 'center', marginTop: 8 }]}>
               No nearby devices found. Make sure BLE is enabled.
             </Text>
-            <TouchableOpacity style={[commonStyles.button, { marginTop: 12 }]} onPress={loadNearbyUsers}>
-              <Text style={commonStyles.buttonText}>Scan Again</Text>
+            <TouchableOpacity style={[styles.button, { marginTop: 12 }]} onPress={loadNearbyUsers}>
+              <Text style={styles.buttonText}>Scan Again</Text>
             </TouchableOpacity>
           </View>
         ) : (
           nearbyUsers.map((nearbyUser) => {
             const statusColor = getStatusColor(nearbyUser.status);
+            const sourceLabel = nearbyUser.source === 'both' ? 'BLE + Internet' : nearbyUser.source === 'internet' ? 'Internet' : 'BLE';
+            const sourceIcon = nearbyUser.source === 'internet' ? 'wifi' : nearbyUser.source === 'both' ? 'wifi' : 'bluetooth';
             return (
               <Pressable
                 key={nearbyUser.id}
-                style={commonStyles.listItem}
+                style={styles.listItem}
                 onPress={() => navigation.navigate('Chat', { user: nearbyUser })}
-                android_ripple={{ color: COLORS.surfaceLight }}
+                android_ripple={{ color: colors.surfaceLight }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <View style={[commonStyles.statusDot, { backgroundColor: statusColor }]} />
+                  <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
                   <View style={{ flex: 1, marginLeft: 4 }}>
-                    <Text style={commonStyles.listItemTitle}>{nearbyUser.name || nearbyUser.id}</Text>
-                    <Text style={commonStyles.listItemSub}>{nearbyUser.id}</Text>
+                    <Text style={styles.listItemTitle}>{nearbyUser.name || nearbyUser.id}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Ionicons name={sourceIcon} size={11} color={colors.gray} />
+                      <Text style={[styles.listItemSub, { marginLeft: 3 }]}>{nearbyUser.id} • {sourceLabel}</Text>
+                    </View>
                   </View>
                   <TouchableOpacity
-                    style={commonStyles.buttonSmall}
+                    style={styles.buttonSmall}
                     onPress={() => navigation.navigate('Chat', { user: nearbyUser })}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="chatbubble" size={14} color={COLORS.white} />
-                    <Text style={[commonStyles.buttonTextSmall, { marginLeft: 4 }]}>Message</Text>
+                    <Ionicons name="chatbubble" size={14} color={colors.white} />
+                    <Text style={[styles.buttonTextSmall, { marginLeft: 4 }]}>Message</Text>
                   </TouchableOpacity>
                 </View>
               </Pressable>
@@ -126,36 +125,35 @@ export default function NearbyScreen({ navigation }) {
           })
         )}
 
-        {/* Nearby Embassies & Consulates */}
-        <Text style={commonStyles.sectionHeader}>Nearby Embassies & Consulates</Text>
+        <Text style={styles.sectionHeader}>Nearby Embassies & Consulates</Text>
         {nearbyEmbassies.length === 0 ? (
-          <View style={commonStyles.listItem}>
+          <View style={styles.listItem}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="flag-outline" size={18} color={COLORS.gray} />
-              <Text style={[commonStyles.listItemSub, { marginLeft: 8 }]}>None found within 200km</Text>
+              <Ionicons name="flag-outline" size={18} color={colors.gray} />
+              <Text style={[styles.listItemSub, { marginLeft: 8 }]}>None found within 200km</Text>
             </View>
           </View>
         ) : (
           nearbyEmbassies.map((embassy) => (
             <Pressable
               key={embassy.id}
-              style={commonStyles.listItem}
+              style={styles.listItem}
               onPress={() => navigation.navigate('Chat', { embassy })}
-              android_ripple={{ color: COLORS.surfaceLight }}
+              android_ripple={{ color: colors.surfaceLight }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name={embassy.type === 'embassy' ? 'flag' : 'business'} size={18} color={COLORS.primaryBlueLight} />
+                <Ionicons name={embassy.type === 'embassy' ? 'flag' : 'business'} size={18} color={colors.primaryBlueLight} />
                 <View style={{ flex: 1, marginLeft: 10 }}>
-                  <Text style={commonStyles.listItemTitle}>{embassy.name}</Text>
-                  <Text style={commonStyles.listItemSub}>{embassy.type} - {embassy.address || ''}</Text>
+                  <Text style={styles.listItemTitle}>{embassy.name}</Text>
+                  <Text style={styles.listItemSub}>{embassy.type} - {embassy.address || ''}</Text>
                 </View>
                 <TouchableOpacity
-                  style={commonStyles.buttonSmall}
+                  style={styles.buttonSmall}
                   onPress={() => navigation.navigate('Chat')}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="chatbubble" size={14} color={COLORS.white} />
-                  <Text style={[commonStyles.buttonTextSmall, { marginLeft: 4 }]}>Chat</Text>
+                  <Ionicons name="chatbubble" size={14} color={colors.white} />
+                  <Text style={[styles.buttonTextSmall, { marginLeft: 4 }]}>Chat</Text>
                 </TouchableOpacity>
               </View>
             </Pressable>
@@ -163,7 +161,6 @@ export default function NearbyScreen({ navigation }) {
         )}
       </ScrollView>
 
-      {/* Bottom Navigation */}
       <BottomNav navigation={navigation} activeScreen="Nearby" />
     </SafeAreaView>
   );

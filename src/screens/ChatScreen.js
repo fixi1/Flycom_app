@@ -2,15 +2,15 @@ import { Text, TouchableOpacity, View, TextInput, FlatList, Alert, KeyboardAvoid
 import { useState, useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { commonStyles } from '../styles/commonStyles';
-import { COLORS } from '../styles/colors';
+import { useTheme } from '../context/ThemeContext';
 import { useAppContext } from '../context/AppContext';
-import { addMessage, loadMessages, loadKnownUsers, saveKnownUser } from '../storage';
+import { addMessage, loadKnownUsers, saveKnownUser } from '../storage';
 import { encryptMessage, decryptMessage } from '../services/cryptoService';
 import BottomNav from '../components/BottomNav';
 
 export default function ChatScreen({ navigation, route }) {
-  const { user, nearbyEmbassies, officials, admin, nearbyUsers, isOnline, connectionType } = useAppContext();
+  const { user, nearbyEmbassies, officials, admin, nearbyUsers, isOnline, connectionType, sendBleMessage, broadcastBleMessage, sendCloudMessage, hasInternet, messages: contextMessages, refreshMessages } = useAppContext();
+  const { styles, colors } = useTheme();
   const chatPartner = route.params?.user || null;
   const [activeTab, setActiveTab] = useState('chat');
   const [messageText, setMessageText] = useState('');
@@ -32,8 +32,8 @@ export default function ChatScreen({ navigation, route }) {
   const canType = !!(chatPartner || selectedChannel || (activeTab === 'chat' && !chatPartner));
 
   useEffect(() => {
-    loadMessages().then(setMessages);
-  }, []);
+    setMessages(contextMessages);
+  }, [contextMessages]);
 
   const isOfficial = (userId) => {
     return officials.some(o => o.userId === userId);
@@ -120,9 +120,39 @@ export default function ChatScreen({ navigation, route }) {
     };
 
     await addMessage(message);
-    const updated = await loadMessages();
-    setMessages(updated);
+    await refreshMessages();
     setMessageText('');
+
+    const cloudPayload = {
+      type: chatPartner ? 'CHAT' : 'BROADCAST',
+      text: messageText,
+      senderId: user?.id,
+      senderName: user?.username || user?.id,
+      recipientId: chatPartner?.id || 'broadcast',
+      timestamp: Date.now(),
+    };
+
+    if (sendCloudMessage) {
+      try {
+        await sendCloudMessage(cloudPayload);
+      } catch (e) {
+        console.warn('Cloud send failed:', e?.message);
+      }
+    }
+
+    if (chatPartner?.deviceAddress) {
+      try {
+        await sendBleMessage(chatPartner.deviceAddress, JSON.stringify(cloudPayload));
+      } catch (e) {
+        console.warn('BLE send failed:', e?.message);
+      }
+    } else if (!chatPartner) {
+      try {
+        await broadcastBleMessage(JSON.stringify(cloudPayload));
+      } catch (e) {
+        console.warn('BLE broadcast failed:', e?.message);
+      }
+    }
   };
 
   const filteredMessages = messages.filter(msg => {
@@ -158,14 +188,14 @@ export default function ChatScreen({ navigation, route }) {
       }
     }
     return (
-      <View style={[styles.messageBubble, own ? styles.ownMessage : styles.otherMessage]}>
-        {!own && <Text style={styles.messageSender}>{item.senderName}</Text>}
-        <Text style={styles.messageText}>{displayText}</Text>
+      <View style={[localStyles.messageBubble, own ? localStyles.ownMessage : localStyles.otherMessage]}>
+        {!own && <Text style={localStyles.messageSender}>{item.senderName}</Text>}
+        <Text style={localStyles.messageText}>{displayText}</Text>
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' }}>
           {item.isEncrypted && (
-            <Ionicons name="lock-closed" size={10} color={COLORS.whiteAlpha50} style={{ marginRight: 4 }} />
+            <Ionicons name="lock-closed" size={10} color={colors.whiteAlpha50} style={{ marginRight: 4 }} />
           )}
-          <Text style={styles.messageTime}>{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+          <Text style={localStyles.messageTime}>{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
         </View>
       </View>
     );
@@ -180,40 +210,40 @@ export default function ChatScreen({ navigation, route }) {
     : (activeTab === 'search' ? 'Search by ID or name' : activeTab === 'chat' ? 'Peer-to-peer' : 'Nearby');
 
   return (
-    <SafeAreaView style={commonStyles.screen} edges={['top']}>
+    <SafeAreaView style={styles.screen} edges={['top']}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         {/* Top Info Bar */}
-        <View style={commonStyles.topBar}>
+        <View style={styles.topBar}>
           <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
             {chatPartner && (
               <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 10 }}>
-                <Ionicons name="arrow-back" size={22} color={COLORS.white} />
+                <Ionicons name="arrow-back" size={22} color={colors.white} />
               </TouchableOpacity>
             )}
             <View style={{ flex: 1 }}>
-              <Text style={commonStyles.topBarTitle}>{chatTitle}</Text>
-              <Text style={commonStyles.topBarSubtitle}>{chatSubtitle}</Text>
+              <Text style={styles.topBarTitle}>{chatTitle}</Text>
+              <Text style={styles.topBarSubtitle}>{chatSubtitle}</Text>
             </View>
           </View>
           {!chatPartner && (
             <View style={{ flexDirection: 'row' }}>
               <TouchableOpacity
-                style={[commonStyles.buttonSmall, { marginRight: 6 }]}
+                style={[styles.buttonSmall, { marginRight: 6 }]}
                 onPress={() => setActiveTab('search')}
               >
-                <Ionicons name="search" size={14} color={COLORS.white} />
-                <Text style={[commonStyles.buttonTextSmall, { marginLeft: 4 }]}>Find</Text>
+                <Ionicons name="search" size={14} color={colors.white} />
+                <Text style={[styles.buttonTextSmall, { marginLeft: 4 }]}>Find</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={commonStyles.buttonSmall}
+                style={styles.buttonSmall}
                 onPress={() => navigation.navigate('Nearby')}
               >
-                <Ionicons name="person-add" size={14} color={COLORS.white} />
-                <Text style={[commonStyles.buttonTextSmall, { marginLeft: 4 }]}>Nearby</Text>
+                <Ionicons name="person-add" size={14} color={colors.white} />
+                <Text style={[styles.buttonTextSmall, { marginLeft: 4 }]}>Nearby</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -221,11 +251,11 @@ export default function ChatScreen({ navigation, route }) {
 
         {/* Tab Bar - only show when not in direct chat */}
         {!chatPartner && (
-          <View style={styles.tabBar}>
+          <View style={localStyles.tabBar}>
             {tabs.map((tab) => (
               <TouchableOpacity
                 key={tab.id}
-                style={[styles.tab, activeTab === tab.id && styles.activeTab]}
+                style={[localStyles.tab, activeTab === tab.id && localStyles.activeTab]}
                 onPress={() => {
                   setActiveTab(tab.id);
                   setSelectedChannel(null);
@@ -235,9 +265,9 @@ export default function ChatScreen({ navigation, route }) {
                 <Ionicons
                   name={tab.icon}
                   size={16}
-                  color={activeTab === tab.id ? COLORS.white : COLORS.whiteAlpha50}
+                  color={activeTab === tab.id ? colors.white : colors.whiteAlpha50}
                 />
-                <Text style={[styles.tabText, activeTab === tab.id && styles.activeTabText]}>
+                <Text style={[localStyles.tabText, activeTab === tab.id && localStyles.activeTabText]}>
                   {tab.label}
                 </Text>
               </TouchableOpacity>
@@ -252,28 +282,28 @@ export default function ChatScreen({ navigation, route }) {
             <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
                 <TextInput
-                  style={[styles.textInput, { flex: 1, marginRight: 8 }]}
+                  style={[localStyles.textInput, { flex: 1, marginRight: 8 }]}
                   placeholder="Search by User ID or name..."
-                  placeholderTextColor={COLORS.grayDark}
+                  placeholderTextColor={colors.grayDark}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   autoCapitalize="characters"
                   returnKeyType="search"
                   onSubmitEditing={handleSearch}
                 />
-                <TouchableOpacity style={styles.sendButton} onPress={handleSearch} activeOpacity={0.7}>
-                  <Ionicons name="search" size={18} color={COLORS.white} />
+                <TouchableOpacity style={localStyles.sendButton} onPress={handleSearch} activeOpacity={0.7}>
+                  <Ionicons name="search" size={18} color={colors.white} />
                 </TouchableOpacity>
               </View>
 
               {isSearching && (
-                <Text style={[commonStyles.infoText, { textAlign: 'center' }]}>Searching...</Text>
+                <Text style={[styles.infoText, { textAlign: 'center' }]}>Searching...</Text>
               )}
 
               {!isSearching && searchResults.length === 0 && searchQuery.trim() ? (
                 <View style={{ alignItems: 'center', paddingVertical: 32 }}>
-                  <Ionicons name="person-outline" size={40} color={COLORS.grayDark} />
-                  <Text style={[commonStyles.infoText, { textAlign: 'center', marginTop: 8 }]}>
+                  <Ionicons name="person-outline" size={40} color={colors.grayDark} />
+                  <Text style={[styles.infoText, { textAlign: 'center', marginTop: 8 }]}>
                     No users found. Try a different ID or name.
                   </Text>
                 </View>
@@ -281,7 +311,7 @@ export default function ChatScreen({ navigation, route }) {
                 searchResults.map((foundUser) => (
                   <TouchableOpacity
                     key={foundUser.id}
-                    style={commonStyles.listItem}
+                    style={styles.listItem}
                     onPress={async () => {
                       await saveKnownUser(foundUser);
                       navigation.navigate('Chat', { user: foundUser });
@@ -289,24 +319,24 @@ export default function ChatScreen({ navigation, route }) {
                     activeOpacity={0.7}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <View style={[commonStyles.statusDot, { backgroundColor: COLORS.green }]} />
+                      <View style={[styles.statusDot, { backgroundColor: colors.green }]} />
                       <View style={{ marginLeft: 10, flex: 1 }}>
-                        <Text style={commonStyles.listItemTitle}>{foundUser.username || foundUser.id}</Text>
-                        <Text style={commonStyles.listItemSub}>{foundUser.id}</Text>
+                        <Text style={styles.listItemTitle}>{foundUser.username || foundUser.id}</Text>
+                        <Text style={styles.listItemSub}>{foundUser.id}</Text>
                       </View>
-                      <Ionicons name="chatbubble" size={18} color={COLORS.primaryBlueLight} />
+                      <Ionicons name="chatbubble" size={18} color={colors.primaryBlueLight} />
                     </View>
                   </TouchableOpacity>
                 ))
               )}
 
               {/* Your ID for sharing */}
-              <View style={[commonStyles.card, { marginTop: 20 }]}>
-                <Text style={commonStyles.cardTitle}>Your User ID</Text>
-                <Text style={[commonStyles.listItemTitle, { fontSize: 18, textAlign: 'center', marginVertical: 8, letterSpacing: 2 }]}>
+              <View style={[styles.card, { marginTop: 20 }]}>
+                <Text style={styles.cardTitle}>Your User ID</Text>
+                <Text style={[styles.listItemTitle, { fontSize: 18, textAlign: 'center', marginVertical: 8, letterSpacing: 2 }]}>
                   {user?.id || '...'}
                 </Text>
-                <Text style={commonStyles.caption}>Share this ID so others can find you</Text>
+                <Text style={styles.caption}>Share this ID so others can find you</Text>
               </View>
             </ScrollView>
           )}
@@ -314,13 +344,13 @@ export default function ChatScreen({ navigation, route }) {
           {/* Channel Selection for Embassies/Consulates */}
           {!chatPartner && (activeTab === 'embassies' || activeTab === 'consulates') && !selectedChannel && (
             <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
-              <Text style={commonStyles.sectionHeader}>
+              <Text style={styles.sectionHeader}>
                 {activeTab === 'embassies' ? 'Nearby Embassies' : 'Nearby Consulates'}
               </Text>
               {locationChannels.length === 0 ? (
                 <View style={{ alignItems: 'center', paddingVertical: 32 }}>
-                  <Ionicons name={activeTab === 'embassies' ? 'flag-outline' : 'business-outline'} size={40} color={COLORS.grayDark} />
-                  <Text style={[commonStyles.infoText, { textAlign: 'center', marginTop: 8 }]}>
+                  <Ionicons name={activeTab === 'embassies' ? 'flag-outline' : 'business-outline'} size={40} color={colors.grayDark} />
+                  <Text style={[styles.infoText, { textAlign: 'center', marginTop: 8 }]}>
                     No {activeTab} found within 200km of your location.
                   </Text>
                 </View>
@@ -328,17 +358,17 @@ export default function ChatScreen({ navigation, route }) {
                 locationChannels.map((channel) => (
                   <TouchableOpacity
                     key={channel.id}
-                    style={commonStyles.listItem}
+                    style={styles.listItem}
                     onPress={() => setSelectedChannel(channel.id)}
                     activeOpacity={0.7}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Ionicons name={activeTab === 'embassies' ? 'flag' : 'business'} size={18} color={COLORS.primaryBlueLight} />
+                      <Ionicons name={activeTab === 'embassies' ? 'flag' : 'business'} size={18} color={colors.primaryBlueLight} />
                       <View style={{ marginLeft: 10, flex: 1 }}>
-                        <Text style={commonStyles.listItemTitle}>{channel.name}</Text>
-                        <Text style={commonStyles.listItemSub}>{channel.address || channel.locationName || ''}</Text>
+                        <Text style={styles.listItemTitle}>{channel.name}</Text>
+                        <Text style={styles.listItemSub}>{channel.address || channel.locationName || ''}</Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={18} color={COLORS.gray} />
+                      <Ionicons name="chevron-forward" size={18} color={colors.gray} />
                     </View>
                   </TouchableOpacity>
                 ))
@@ -347,7 +377,7 @@ export default function ChatScreen({ navigation, route }) {
                 style={{ marginTop: 12, padding: 10, alignItems: 'center' }}
                 onPress={() => setActiveTab('chat')}
               >
-                <Text style={{ color: COLORS.primaryBlueLight, fontSize: 14, fontWeight: '600' }}>
+                <Text style={{ color: colors.primaryBlueLight, fontSize: 14, fontWeight: '600' }}>
                   Back to Chat
                 </Text>
               </TouchableOpacity>
@@ -358,11 +388,11 @@ export default function ChatScreen({ navigation, route }) {
           {(chatPartner || (activeTab === 'chat' && !chatPartner) || selectedChannel) && (
             <View style={{ flex: 1 }}>
               {selectedChannel && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: COLORS.surface }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: colors.surface }}>
                   <TouchableOpacity onPress={() => setSelectedChannel(null)} activeOpacity={0.7}>
-                    <Ionicons name="arrow-back" size={22} color={COLORS.white} />
+                    <Ionicons name="arrow-back" size={22} color={colors.white} />
                   </TouchableOpacity>
-                  <Text style={[commonStyles.cardTitle, { marginLeft: 10, flex: 1 }]}>
+                  <Text style={[styles.cardTitle, { marginLeft: 10, flex: 1 }]}>
                     {locationChannels.find(c => c.id === selectedChannel)?.name || selectedChannel}
                   </Text>
                 </View>
@@ -370,8 +400,8 @@ export default function ChatScreen({ navigation, route }) {
 
               {filteredMessages.length === 0 ? (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
-                  <Ionicons name="chatbubbles-outline" size={48} color={COLORS.grayDark} />
-                  <Text style={[commonStyles.infoText, { textAlign: 'center', marginTop: 12 }]}>
+                  <Ionicons name="chatbubbles-outline" size={48} color={colors.grayDark} />
+                  <Text style={[styles.infoText, { textAlign: 'center', marginTop: 12 }]}>
                     {chatPartner
                       ? `No messages with ${chatPartner.name || chatPartner.id} yet. Say hello!`
                       : 'Select a conversation or find a user to start chatting.'}
@@ -392,23 +422,23 @@ export default function ChatScreen({ navigation, route }) {
 
               {/* Message Input - only show when can type */}
               {canType && (
-                <View style={styles.inputContainer}>
+                <View style={localStyles.inputContainer}>
                   <TextInput
-                    style={styles.textInput}
+                    style={localStyles.textInput}
                     placeholder={chatPartner ? `Message ${chatPartner.name || chatPartner.id}...` : selectedChannel ? "Post to channel..." : "Type a message..."}
-                    placeholderTextColor={COLORS.grayDark}
+                    placeholderTextColor={colors.grayDark}
                     value={messageText}
                     onChangeText={setMessageText}
                     multiline
                     maxLength={500}
                   />
                   <TouchableOpacity
-                    style={[styles.sendButton, !messageText.trim() && { opacity: 0.4 }]}
+                    style={[localStyles.sendButton, !messageText.trim() && { opacity: 0.4 }]}
                     onPress={handleSendMessage}
                     disabled={!messageText.trim()}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="send" size={20} color={COLORS.white} />
+                    <Ionicons name="send" size={20} color={colors.white} />
                   </TouchableOpacity>
                 </View>
               )}
@@ -423,10 +453,10 @@ export default function ChatScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+const localStyles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: COLORS.primaryBlue,
+    backgroundColor: '#2626A2',
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
@@ -440,16 +470,16 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
   },
   activeTab: {
-    backgroundColor: COLORS.primaryBlueLight,
+    backgroundColor: '#3B3BBF',
   },
   tabText: {
-    color: COLORS.whiteAlpha50,
+    color: 'rgba(255, 255, 255, 0.5)',
     fontSize: 13,
     marginLeft: 5,
     fontWeight: '500',
   },
   activeTabText: {
-    color: COLORS.white,
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   inputContainer: {
@@ -457,18 +487,18 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: COLORS.surface,
+    backgroundColor: '#3A3A3A',
     borderTopWidth: 1,
-    borderTopColor: COLORS.surfaceLight,
+    borderTopColor: '#4A4A4A',
   },
   textInput: {
     flex: 1,
-    backgroundColor: COLORS.darkBg,
+    backgroundColor: '#2A2A2A',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
     maxHeight: 80,
-    color: COLORS.white,
+    color: '#FFFFFF',
     fontSize: 15,
     marginRight: 8,
   },
@@ -476,7 +506,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.primaryBlue,
+    backgroundColor: '#2626A2',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -487,28 +517,28 @@ const styles = StyleSheet.create({
     maxWidth: '75%',
   },
   ownMessage: {
-    backgroundColor: COLORS.primaryBlue,
+    backgroundColor: '#2626A2',
     alignSelf: 'flex-end',
     borderBottomRightRadius: 4,
   },
   otherMessage: {
-    backgroundColor: COLORS.surfaceLight,
+    backgroundColor: '#4A4A4A',
     alignSelf: 'flex-start',
     borderBottomLeftRadius: 4,
   },
   messageSender: {
-    color: COLORS.primaryBlueLight,
+    color: '#3B3BBF',
     fontSize: 12,
     fontWeight: '600',
     marginBottom: 3,
   },
   messageText: {
-    color: COLORS.white,
+    color: '#FFFFFF',
     fontSize: 14,
     lineHeight: 19,
   },
   messageTime: {
-    color: COLORS.whiteAlpha50,
+    color: 'rgba(255, 255, 255, 0.5)',
     fontSize: 10,
     marginTop: 3,
     textAlign: 'right',

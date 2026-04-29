@@ -126,8 +126,21 @@ export async function decryptMessageAsync(encryptedBase64, senderId) {
 }
 
 function decryptWithSenderKey(encryptedBase64, senderPublicKey) {
-  return null;
+  try {
+    const combined = decodeKey(encryptedBase64);
+    const nonce = combined.slice(0, nacl.box.nonceLength);
+    const ciphertext = combined.slice(nacl.box.nonceLength);
+    const decrypted = nacl.box.open(ciphertext, nonce, senderPublicKey, decodeKey(cachedSecretKey || ''));
+    if (!decrypted) return null;
+    return naclUtil.encodeUTF8(decrypted);
+  } catch (e) {
+    return null;
+  }
 }
+
+let cachedSecretKey = null;
+
+loadOrCreateKeyPair().then(kp => { cachedSecretKey = kp.secretKey; }).catch(() => {});
 
 function deriveKeyPairFromId(id) {
   const seed = new Uint8Array(nacl.box.secretKeyLength);

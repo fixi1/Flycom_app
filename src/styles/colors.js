@@ -1,4 +1,4 @@
-export const COLORS = {
+export const DARK_COLORS = {
   darkBg: '#2A2A2A',
   surface: '#3A3A3A',
   surfaceLight: '#4A4A4A',
@@ -16,4 +16,40 @@ export const COLORS = {
   greenDark: '#16A34A',
   orange: '#F97316',
   orangeDark: '#EA580C',
+  text: '#FFFFFF',
+  textSecondary: '#9CA3AF',
+  textMuted: '#6B7280',
+  inputBg: '#3A3A3A',
+  inputBorder: '#4A4A4A',
+  inputText: '#FFFFFF',
+  inputPlaceholder: '#6B7280',
 };
+
+export const LIGHT_COLORS = {
+  darkBg: '#F5F5F5',
+  surface: '#FFFFFF',
+  surfaceLight: '#E5E7EB',
+  primaryBlue: '#2626A2',
+  primaryBlueLight: '#3B3BBF',
+  white: '#FFFFFF',
+  whiteAlpha50: 'rgba(0, 0, 0, 0.5)',
+  whiteAlpha20: 'rgba(0, 0, 0, 0.2)',
+  black: '#000000',
+  red: '#DC2626',
+  redLight: '#EF4444',
+  gray: '#6B7280',
+  grayDark: '#9CA3AF',
+  green: '#22C55E',
+  greenDark: '#16A34A',
+  orange: '#F97316',
+  orangeDark: '#EA580C',
+  text: '#1F2937',
+  textSecondary: '#6B7280',
+  textMuted: '#9CA3AF',
+  inputBg: '#FFFFFF',
+  inputBorder: '#D1D5DB',
+  inputText: '#1F2937',
+  inputPlaceholder: '#9CA3AF',
+};
+
+export const COLORS = DARK_COLORS;

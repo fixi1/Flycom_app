@@ -1,3 +1,2 @@
-export { default as bleService } from './bleService';
 export { loadOrCreateUser, updateUsername } from './userService';
-export { generateNearbyUsers } from './nearbyService';
+export { startBLEScan, stopBLEScan, startBLEServer, stopBLEServer, sendBleMessage, broadcastBleMessage, onMessageReceived, startListeningForMessages, stopListeningForMessages, destroyManager } from './nearbyService';
