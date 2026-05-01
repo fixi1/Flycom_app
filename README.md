@@ -149,7 +149,7 @@ Flycom/
 ---
 
 ## Team
-
+- **Posteuca Andrei-Nicolae** — Leader
 - **Alexa Teodor** — Development
 - **Lozneanu Andi-Fineas** — Design & UI/UX
 
